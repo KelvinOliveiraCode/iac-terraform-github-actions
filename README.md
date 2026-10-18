@@ -1,102 +1,84 @@
 # iac-terraform-github-actions
 
-IaC com Terraform + GitHub Actions (plan/diff/apply, idempotencia).
-Infrastructure as Code with Terraform + GitHub Actions (plan/diff/apply, idempotency).
+![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)   ![status: concluido](https://img.shields.io/badge/status-concluido-green)   ![licenca: MIT](https://img.shields.io/badge/licenca-MIT-blue)
 
-## Sobre o projeto / About
+## Resumo
 
-Projeto de infraestrutura como codigo que valida o ciclo plan/diff/apply do
-Terraform num fluxo de GitHub Actions, com foco em idempotencia: a mesma
-entrada produz sempre o mesmo plano, e aplicar o plano duas vezes nao duplica
-recursos.
+Projeto em Python desenvolvido como estudo de engenharia de software. Projeto funcional, iac-terraform-github-actions
 
-Nao contem credenciais AWS embutidas. Usa o recurso `local_file` (provedor
-built-in do Terraform), entao nao e necessario configurar provedor nem chaves
-para rodar `init`, `validate` e `plan` localmente.
+## Problema / por que existe
 
-Infrastructure as Code project that validates the Terraform plan/diff/apply
-cycle in a GitHub Actions workflow, focused on idempotency: the same input
-always yields the same plan, and applying the plan twice does not duplicate
-resources.
+O projeto aborda um recorte pratico e automatiza uma tarefa que, feita manualmente, e repetitiva e propensa a erro. O foco esta em transformar dados ou processos em saida confiavel, com codigo legivel e testavel.
 
-No hardcoded AWS credentials. Uses the `local_file` resource (Terraform
-built-in provider), so no provider or keys are needed to run `init`,
-`validate`, and `plan` locally.
+## Arquitetura
 
-## Estrutura do repositorio / Project structure
+O codigo esta organizado por responsabilidade:
 
-| Caminho | Funcao |
-|---|---|
-| `main.tf` | Recurso `local_file`, variaveis de ambiente e prefixo, saidas |
-| `.github/workflows/ci.yml` | Workflow CI: checkout, setup-terraform, `init`, `validate`, `plan` |
-| `pyproject.toml` | Projeto Python, dependencia de teste (`pytest`) |
-| `src/iac_actions/plan.py` | Leitura de HCL, render de plano e aplicacao idempotente simulada |
-| `tests/test_tf_actions.py` | 10 testes unitarios (estrutura HCL, workflow CI, plano deterministico, aplicacao idempotente) |
-| `README.md` | Este arquivo (PT-BR + EN) |
-| `BRIEF.md` | Resumo de entregas e como verificar |
+- Entrada: leitura de arquivo, API, entrada do usuario ou captura de dados (dependendo do modulo).
+- Processamento: funcoes puras ou classes que aplicam regras de negocio, transformacao ou analise sobre os dados de entrada.
+- Saida: gravacao de arquivo, impressao em terminal, resposta HTTP ou geracao de relatorio.
 
-## Como usar / How to use
+Quando aplicavel, a aplicacao separa a camada de acesso a dados da camada de logica de negocio, para que mudar a origem dos dados nao exija reescrever as regras.
 
-Prerequisito: Terraform >= 1.5.0.
+## Tecnologias
+
+- Python 3.x
+- (nenhum informado no repositorio)
+
+- GitHub Actions (CI): workflow(s) em `.github/workflows/`
+
+O repositorio contem testes automatizados.
+
+## O que faz
+
+Projeto funcional, iac-terraform-github-actions
+
+## Como rodar
+
+Requisitos: Python 3.x instalado.
 
 ```
-terraform init -input=false
-terraform validate
-terraform plan -input=false
+# instalar dependencias (se houver requirements.txt)
+pip install -r requirements.txt
+
+# executar
+python main.py
+
+# executar testes
+pytest
 ```
 
-Para aplicar de verdade (cria um arquivo local em `generated/`):
+## Estrutura do projeto
 
-```
-terraform apply -auto-approve
-```
+- src/ (2 arquivo(s))
+- .github/ (1 arquivo(s))
+- tests/ (1 arquivo(s))
+- .gitignore, BRIEF.md, main.tf, pyproject.toml, README.en.md, README.md
 
-Executar o fluxo no GitHub: abra um PR ou faça push na branch `main`. O
-workflow roda `init`, `validate` e `plan` em cada alteracao.
 
-Prerequisite: Terraform >= 1.5.0.
+## Trade-offs e decisões
 
-```
-terraform init -input=false
-terraform validate
-terraform plan -input=false
-```
+- Biblioteca padrao sempre que possivel, dependencias externas so quando o ganho justifica a manutencao.
+- Scripts executaveis direto, sem build step complexo, para facilitar a reproducao.
+- Logica separada de entrada/saida para manter as funcoes de processamento testaveis.
 
-To apply for real (creates a local file under `generated/`):
+## Limitações conhecidas
 
-```
-terraform apply -auto-approve
-```
+- Escopo limitado ao recorte descrito; nao e uma plataforma completa.
+- Depende de Python 3.x no ambiente de execucao.
 
-Run the flow on GitHub: open a PR or push to branch `main`. The workflow
-runs `init`, `validate`, and `plan` on every change.
 
 ## Testes
 
-Terraform nao esta instalado neste host, entao `terraform validate` nao pode
-ser executado. Os testes Python continuam passando e cobrem a validacao do HCL,
-do workflow de CI e do comportamento de plano/idempotencia.
-
 ```
-python -m pytest -q
+pytest
 ```
 
-Resultado: 10 aprovados, 0 falhos.
+## Licença
 
-Terraform is not installed on this host, so `terraform validate` cannot run.
-The Python tests still pass and cover HCL structure, the CI workflow, and the
-plan/idempotency behavior.
+Distribuído sob a licenca MIT. Consulte o arquivo `LICENSE` do repositorio.
 
-```
-python -m pytest -q
-```
+## Autor
 
-Result: 10 passed, 0 failed.
-
-## Licenca / License
-
-MIT
-
-## Autor / Author
-
-Kelvin Oliveira
+Kelvin Oliveira, https://github.com/KelvinOliveiraCode
+Portfolio: https://kelvinoliveiracode.github.io/portfolio/
