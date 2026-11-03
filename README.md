@@ -1,118 +1,110 @@
 # iac-terraform-github-actions
 
-<div align="center">
-
 [English](README.en.md) · **Português (Brasil)**
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Projeto funcional ,  iac-terraform-github-actions
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![Terraform](https://img.shields.io/badge/Terraform-1.5-623CE4?style=flat-square&logo=terraform)](#) [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions)](#) [![pytest](https://img.shields.io/badge/pytest-10%20testes-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## O que é
 
-Projeto funcional ,  iac-terraform-github-actions
+MVP de **Infraestrutura como Código (IaC) com Terraform + GitHub Actions**: um `main.tf` (sem credenciais embutidas, usa o provedor `local_file`) que define `environment` e `prefix`, um pipeline de CI que roda `terraform init/validate/plan`, e um utilitário Python que **simula de forma determinística** o plano e a **aplicação idempotente** do Terraform sem chamar o binário. É um laboratório de IaC/CI.
 
----
+## Status
 
-## Início Rápido
+Laboratório funcional de IaC/CI com 10 testes e pipeline Terraform no GitHub Actions.
 
-```bash
-# Clone e entre
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Funcionalidades
 
-# Instale dependências
-# Nenhum requirements.txt detectado
+- **`main.tf`** real: define variáveis (`environment`, `prefix`), recursos com `local_file`, versão do Terraform pegando `>= 1.5, < 2.0`.
+- **Simulação determinística de plan/apply** (`src/iac_actions/plan.py`): lê HCL, extrai blocos de recursos, renderiza plano por ambiente e aplica de forma **idempotente** (não duplica recursos já presentes).
+- **CI (GitHub Actions)**: `terraform init -input=false`, `validate`, `plan` e `show` (Hashicorp setup-terraform v3, Terraform 1.5).
+- **Sem credenciais**: usa apenas o provedor built-in `local_file`.
 
-# Execute o projeto
-python main.py
+## Arquitetura
 
-# Execute os testes
-pytest
+`main.tf` (IaC) + script Python que simula o comportamento de plan/apply (estrutura HCL → plano → estado idempotente) + pipeline GitHub Actions.
+
+```mermaid
+flowchart LR
+    TF[main.tf - Terraform] --> CI[GitHub Actions: init/validate/plan]
+    SIM[plan.py - simulação determinística] --> PLAN[plano por ambiente]
+    PLAN --> APPLY[aplicação idempotente - estado]
 ```
 
-## Como funciona
+## Stack
 
-Estrutura limpa e modular com separação de responsabilidades.
+- Python ≥ 3.9 (simulação determinística)
+- Terraform ≥ 1.5 (via `main.tf` e CI)
+- GitHub Actions (pipeline)
+- pytest (dev)
 
----
+## Estrutura do repositório
 
-## Capacidades
+```
+iac-terraform-github-actions/
+├── main.tf                  # IaC: variáveis + local_file
+├── pyproject.toml · BRIEF.md
+├── src/iac_actions/
+│   └── plan.py              # plan/apply determinístico
+├── tests/test_tf_actions.py
+├── .github/workflows/ci.yml # init/validate/plan/show
+└── LICENSE                  # MIT
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Pré-requisitos e instalação
 
+- Terraform ≥ 1.5, < 2.0 (para o CI/IaC)
+- Python ≥ 3.9 (para a simulação e testes)
 
----
+```bash
+pip install -e .
+```
 
+## Como executar
 
+Não há CLI instalável; use a simulação programaticamente (verificado pelo agente):
 
----
+```bash
+PYTHONPATH=src python -c "from iac_actions.plan import read_hcl, extract_blocks, render_plan; print(render_plan(extract_blocks(read_hcl('main.tf')), 'dev'))"
+# Terraform plan (ambiente=dev)
+#   Planned resources:
+#     + local_file.manifest
+```
 
-## Perguntas Frequentes
+Se o Terraform estiver instalado:
 
-<details>
-<summary><strong>O que é este projeto?</strong></summary>
+```bash
+terraform init -input=false && terraform validate && terraform plan
+```
 
-Um estudo/projeto em Python demonstrando conceitos fundamentais.
+## Testes e qualidade
 
-</details>
+Comando real (verificado pelo agente):
 
-<details>
-<summary><strong>Como executar?</strong></summary>
+```bash
+python -m pytest tests/
+# 10 passed
+```
 
-Veja [Início Rápido](#início-rápido) para comandos copiáveis.
+CI: `.github/workflows/ci.yml` roda o pipeline Terraform (init/validate/plan/show) + testes.
 
-</details>
+## Decisões técnicas e trade-offs
 
-<details>
-<summary><strong>Há testes?</strong></summary>
+- **Simulação sem chamar o binário Terraform**: testes rápidos e reprodutíveis; o trade-off é não validar o plano real fora do CI.
+- **Provedor `local_file` (sem credenciais)**: mantém o lab seguro e executável localmente; não provisiona recursos reais de nuvem.
+- **Aplicação idempotente**: reflete o comportamento esperado do Terraform (não re-criar o que já existe).
 
-Nenhum teste automatizado neste repositório.
+## Limitações conhecidas e roadmap
 
-</details>
+- A simulação entende a estrutura HCL básica; configs mais complexas do Terraform ficam fora dela.
+- Não aplica em provedor real (apenas demonstra e valida com o `local_file`).
+- O CI instala Terraform mas a simulação Python é independente dele.
 
-<details>
-<summary><strong>Posso usar em produção?</strong></summary>
+## Processo de desenvolvimento
 
-Este é um **projeto de estudo/portfólio**. Revise e endureça (auth, persistência, monitoramento, etc.) antes de usar em produção.
+Projeto individual de Kelvin Oliveira, construído com agentes de IA orquestrados e revisado pelo autor. A arquitetura de IaC/CI e a revisão são do autor.
 
-</details>
+## Licença e autor
 
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira.
 
-
----
-
-## Documentação
-
-- **Código-Fonte** ,  Navegue pelo diretório `src/` para detalhes de implementação
-- **Referência da API** ,  Docstrings inline + type hints
-- **Diagrama de Arquitetura** ,  Veja [architecture.mermaid](docs/architecture.mermaid) (se presente)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (se presente)
-- **Contribuindo** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (se presente)
-
-## Licença
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Construído com** · Python 3 + scikit-learn + pandas
-
-**Autor** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+**Autor**: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
